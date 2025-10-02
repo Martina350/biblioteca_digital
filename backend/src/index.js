@@ -53,8 +53,3 @@ app.listen(port, ()=>{
     console.log(`Servidor escuchando en el puerto ${port}`);
     console.log(`Documentacion disponible en: http://localhost:${port}/docs`);
 });
-
-
-// back http://localhost:3000
-// origen http://localhost:4200, 192.168.1.100
-// front http://localhost:4200
