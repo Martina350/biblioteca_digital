@@ -1,0 +1,29 @@
+datasource db {
+  provider="mysql"
+  url = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+}
+
+model Libro {
+  id           Int      @id @default(autoincrement())
+  titulo       String   
+  autor        String?
+  categoria    String?
+  descripcion  String?
+}
+
+model TokenRevocado {
+  id           Int      @id @default(autoincrement())
+  token        String   @unique
+  createAt     DateTime @default(now())
+}

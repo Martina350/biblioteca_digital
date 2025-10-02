@@ -1,0 +1,100 @@
+openapi: 3.0.0
+info: 
+  title: API de Biblioteca digital
+  version: 1.0.0
+  description: API de bibliioteca con autenticación JWT
+
+servers:
+  - url: http://localhost:3000
+    description: Servidor local
+
+paths:
+  /api/registrar:
+    post:
+      summary: Registrar usuario
+      tags:
+        - Autenticacion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: 
+                  type: string
+                  example: usuario@example.com
+                password:
+                  type: string
+                  example: "usuario123"
+      responses:
+        '201':
+          description: Usuario registrado exitosamente
+        '500':
+          description: Error del servidor
+
+  /api/login:
+    post:
+      summary: Iniciar sesión
+      description: Inicia sesión con email y contraseña, devuelve un JWT
+      tags:
+        - Autenticacion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email: 
+                  type: string
+                  format: email
+                  description: Email del usuario
+                  example: usuario@example.com
+                password:
+                  type: string
+                  description: Contraseña del usuario
+                  example: "usuario123"
+      responses:
+        '200':
+          description: Logueado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Mensaje de respuesta
+                    example: "Usuario logueado correctamente"
+                  data:
+                    type: string
+                    description: Token JWT
+                    example: "eyJhbGciOiJIUzI1..."
+        '400':
+          description: Error en los datos enviados
+        '500':
+          description: Error del servidor
+
+  /api/logout:
+    post:
+      summary: Cerrar sesión
+      tags:
+        - Autenticacion
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Sesión cerrada exitosamente
+        '500':
+          description: Error del servidor
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
