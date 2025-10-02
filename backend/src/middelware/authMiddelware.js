@@ -14,7 +14,7 @@ async function verificarToken(req, res, next) {
 
 
     const revocado = await blacklistRepo.estaRevocado(token);
-    if (revocado) return res.status(401).json({message: "Token revocado"});
+    if (revocado) return res.status(401).json({message: "Los libros no están disponibles para usuarios no registrados/logueados"});
     try {
         const decoded = jwt.verify(token, secret_key);
         req.user = decoded;
