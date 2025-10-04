@@ -2,34 +2,37 @@ openapi: 3.0.0
 info: 
   title: API de Biblioteca digital
   version: 1.0.0
-  description: API de bibliioteca con autenticación JWT
+  description: API de biblioteca con autenticación JWT
 
 servers:
   - url: http://localhost:5000
     description: Servidor local
 
+tags:
+  - name: Autenticacion
+  - name: Libros
+  - name: Prestamos
+
 paths:
   /api/registrar:
     post:
       summary: Registrar usuario
-      tags:
-        - Autenticacion
+      tags: [Autenticacion]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                email: 
-                  type: string
-                  example: usuario3@example.com
-                password:
-                  type: string
-                  example: "usuario123"
+              $ref: '#/components/schemas/RegisterInput'
       responses:
         '201':
           description: Usuario registrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          description: El email ya está registrado
         '500':
           description: Error del servidor
 
@@ -37,58 +40,203 @@ paths:
     post:
       summary: Iniciar sesión
       description: Inicia sesión con email y contraseña, devuelve un JWT
-      tags:
-        - Autenticacion
+      tags: [Autenticacion]
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - email
-                - password
-              properties:
-                email: 
-                  type: string
-                  format: email
-                  description: Email del usuario
-                  example: usuario3@example.com
-                password:
-                  type: string
-                  description: Contraseña del usuario
-                  example: "usuario123"
+              $ref: '#/components/schemas/LoginInput'
       responses:
         '200':
           description: Logueado correctamente
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Mensaje de respuesta
-                    example: "Usuario logueado correctamente"
-                  data:
-                    type: string
-                    description: Token JWT
-                    example: "eyJhbGciOiJIUzI1..."
+                $ref: '#/components/schemas/AuthResponse'
         '400':
-          description: Error en los datos enviados
+          description: Credenciales inválidas
         '500':
           description: Error del servidor
 
   /api/logout:
     post:
       summary: Cerrar sesión
-      tags:
-        - Autenticacion
+      tags: [Autenticacion]
       security:
         - bearerAuth: []
       responses:
         '200':
           description: Sesión cerrada exitosamente
+        '500':
+          description: Error del servidor
+
+  # -------------------- Libros --------------------
+  /api/libros:
+    get:
+      summary: Ver lista de libros disponibles
+      tags: [Libros]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de libros
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Book'
+    post:
+      summary: Agregar un nuevo libro (Admin)
+      tags: [Libros]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookCreateInput'
+      responses:
+        '201':
+          description: Libro creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '403':
+          description: Requiere rol admin
+        '500':
+          description: Error del servidor
+
+  /api/libros/{id}:
+    put:
+      summary: Actualizar información de un libro (Admin)
+      tags: [Libros]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+          description: ID del libro
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookUpdateInput'
+      responses:
+        '200':
+          description: Libro actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Book'
+        '403':
+          description: Requiere rol admin
+        '404':
+          description: Libro no encontrado
+        '500':
+          description: Error del servidor
+
+
+  /api/libro/{id}:
+    delete:
+      summary: Eliminar un libro (Admin)
+      tags: [Libros]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+          description: ID del libro
+      responses:
+        '204':
+          description: Eliminado sin contenido
+        '403':
+          description: Requiere rol admin
+        '404':
+          description: Libro no encontrado
+        '500':
+          description: Error del servidor
+
+  # -------------------- Préstamos --------------------
+  /api/prestamo:
+    post:
+      summary: Realizar un préstamo
+      tags: [Prestamos]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanCreateInput'
+      responses:
+        '201':
+          description: Préstamo creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+        '400':
+          description: Libro no disponible o datos inválidos
+        '401':
+          description: No autenticado
+        '409':
+          description: El usuario ya tiene este libro prestado
+        '500':
+          description: Error del servidor
+
+  /api/prestamo/{id}:
+    delete:
+      summary: Devolver un libro
+      tags: [Prestamos]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+          description: ID del préstamo
+      responses:
+        '200':
+          description: Préstamo actualizado (devuelto)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+        '404':
+          description: Préstamo no encontrado
+        '409':
+          description: El préstamo ya fue devuelto
+        '500':
+          description: Error del servidor
+
+  /api/prestamo/history:
+    get:
+      summary: Ver historial de préstamos del usuario autenticado
+      tags: [Prestamos]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Historial del usuario
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoanWithBook'
+        '401':
+          description: No autenticado
         '500':
           description: Error del servidor
 
@@ -98,3 +246,110 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+
+  schemas:
+    # -------- Auth --------
+    RegisterInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: usuario3@example.com
+        password:
+          type: string
+          minLength: 6
+          example: usuario123
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: usuario3@example.com
+        password:
+          type: string
+          example: usuario123
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Autenticación correcta
+        token:
+          type: string
+          description: Token JWT
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    # -------- Libros --------
+    Book:
+      type: object
+      properties:
+        id: { type: integer, example: 12 }
+        titulo: { type: string, example: "Cien años de soledad" }
+        autor: { type: string, example: "Gabriel García Márquez" }
+        categoria: { type: string, example: "Novela" }
+        descripcion: { type: string, example: "Edición conmemorativa" }
+        disponible: { type: boolean, example: true }
+        creadoEn:
+          type: string
+          format: date-time
+    BookCreateInput:
+      type: object
+      required: [titulo, autor, categoria]
+      properties:
+        titulo: { type: string }
+        autor: { type: string }
+        categoria: { type: string }
+        descripcion: { type: string }
+        disponible:
+          type: boolean
+          default: true
+    BookUpdateInput:
+      type: object
+      properties:
+        titulo: { type: string }
+        autor: { type: string }
+        categoria: { type: string }
+        descripcion: { type: string }
+        disponible: { type: boolean }
+
+    # -------- Préstamos --------
+    Loan:
+      type: object
+      properties:
+        id: { type: integer, example: 101 }
+        usuarioId: { type: integer, example: 7 }
+        libroId: { type: integer, example: 12 }
+        fechaPrestamo:
+          type: string
+          format: date-time
+          example: '2025-10-04T15:00:00.000Z'
+        fechaDevolucion:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        devuelto:
+          type: boolean
+          example: false
+    LoanCreateInput:
+      type: object
+      required: [libroId]
+      properties:
+        libroId: { type: integer, example: 12 }
+        diasPrestamo:
+          type: integer
+          minimum: 1
+          maximum: 60
+          default: 14
+          description: Días permitidos para el préstamo
+    LoanWithBook:
+      allOf:
+        - $ref: '#/components/schemas/Loan'
+        - type: object
+          properties:
+            libro:
+              $ref: '#/components/schemas/Book'

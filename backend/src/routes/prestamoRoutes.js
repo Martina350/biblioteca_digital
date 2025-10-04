@@ -9,7 +9,7 @@ const { autorizarRoles } = require('../middelware/rolMiddelware');
 // Definir las rutas de préstamos
 router.get('/prestamo', verificarToken, prestamoController.getPrestamos);
 router.post('/prestamo', verificarToken, prestamoController.pedirLibro);
-router.delete('/prestamo/:id', verificarToken, autorizarRoles('admin'), prestamoController.entregarLibro);
+router.delete('/prestamo/:id', verificarToken, prestamoController.entregarLibro);
 router.get('/prestamo/history', verificarToken, prestamoController.historial);
 
 module.exports = router;

@@ -53,6 +53,8 @@ model Historial {
 
 model TokenRevocado {
   id       Int      @id @default(autoincrement())
-  token    String   @unique
+  token    String   @db.Text
   createAt DateTime @default(now())
+
+  @@unique([token(length: 191)])
 }
