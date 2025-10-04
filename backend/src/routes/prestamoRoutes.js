@@ -11,6 +11,7 @@ const autorizarRoles = require('../middleware/rolMiddleware');
 router.get('/prestamo',verifyToken ,prestamoController.getPrestamos); // Obtener todas las tareas del usuario (requiere autenticación)
 router.post('/tarprestamoeas',verifyToken,prestamoController.pedirLibro); // Crear nueva tarea (requiere autenticación)
 router.delete('/prestamo/:id',verifyToken, autorizarRoles("admin") ,prestamoController.entregarLibro); // Eliminar tarea (requiere autenticación y rol admin)
+router.get("/prestamo/history", validarToken, prestamoController.historial);
 
 // Exportar el router de tareas
 module.exports = router;

@@ -1,14 +1,13 @@
 const {PrismaClient} = require('@prisma/client');
 const prisma = new PrismaClient(); 
 
-// Función para obtener todas las tareas de un usuario específico
+
 async function getPrestamos(usuarioId) {
     return await prisma.Prestamo.findMany({
-        where: {usuarioId: usuarioId} // Filtro por ID del usuario
+        where: {usuarioId: usuarioId} 
     });
 }
 
-// Función para eliminar una tarea específica con control de permisos
 async function entregarLibro(id, usuarioId, rol) {
     // Si el usuario es admin, puede eliminar cualquier tarea
     if (rol === 'admin') {
@@ -32,10 +31,31 @@ async function pedirLibro(data, usuarioId) {
     });
 }
 
+async function historialPrestamo(usuarioId) {
+  const prestamos = await prisma.prestamo.findMany({
+    where: { usuarioId: usuarioId },
+    include: {
+      libro: true,
+      usuarioId: true,
+    },
+  });
+
+  const historial = await prisma.historial.findMany({
+    where: { usuarioId: usuarioId },
+    include: {
+      libro: true,
+      usuario: true,
+    },
+  });
+
+  return { prestamos, historial };
+}
+
 
 // Exportar las funciones del repositorio de tareas
 module.exports = {
     getPrestamos, // Función para obtener tareas de un usuario
     entregarLibro, // Función para eliminar una tarea
-    pedirLibro // Función para crear una nueva tarea
+    pedirLibro, // Función para crear una nueva tarea
+    historialPrestamo // Función para obtener el historial de préstamos de un usuario
 };
