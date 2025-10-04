@@ -1,52 +1,55 @@
 datasource db {
-  provider="mysql"
-  url = env("DATABASE_URL")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 model Usuario {
-  id        Int      @id @default(autoincrement())    
-  email     String   @unique                           
-  password  String                                     
-  rol       String   @default("usuario")              
+  id        Int         @id @default(autoincrement())
+  email     String      @unique
+  password  String
+  rol       String      @default("usuario")
+  Prestamo  Prestamo[]
+  Historial Historial[]
 }
 
 model Libro {
-  id           Int      @id @default(autoincrement())
-  titulo       String   
-  autor        String?
-  categoria    String?
-  descripcion  String?
-  disponible   Boolean  @default(false)
+  id          Int         @id @default(autoincrement())
+  titulo      String
+  autor       String?
+  categoria   String?
+  descripcion String?
+  disponible  Boolean     @default(false)
+  Prestamo    Prestamo[]
+  Historial   Historial[]
 }
 
 model Prestamo {
   id              Int      @id @default(autoincrement())
-  usuarioId       Int 
+  usuarioId       Int
   libroId         Int
   fechaPrestamo   DateTime
   fechaDevolucion DateTime
-  usuario         Usuario  @relation(fields: [usuarioId], references: [id]) 
-  libro           Libro  @relation(fields: [libroId], references: [id]) 
-
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
+  libro           Libro    @relation(fields: [libroId], references: [id])
 }
 
 model Historial {
   id              Int      @id @default(autoincrement())
-  usuarioId       Int 
+  usuarioId       Int
   libroId         Int
   fechaPrestamo   DateTime
   fechaDevolucion DateTime
-  usuario         Usuario  @relation(fields: [usuarioId], references: [id]) 
-  libro           Libro  @relation(fields: [libroId], references: [id])
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
+  libro           Libro    @relation(fields: [libroId], references: [id])
 }
 
 model TokenRevocado {
-  id           Int      @id @default(autoincrement())
-  token        String   @unique
-  createAt     DateTime @default(now())
+  id       Int      @id @default(autoincrement())
+  token    String   @unique
+  createAt DateTime @default(now())
 }
