@@ -15,6 +15,7 @@ model Usuario {
   rol       String      @default("usuario")
   Prestamo  Prestamo[]
   Historial Historial[]
+  libros    Libro[]
 }
 
 model Libro {
@@ -26,6 +27,8 @@ model Libro {
   disponible  Boolean     @default(false)
   Prestamo    Prestamo[]
   Historial   Historial[]
+  usuarioId       Int
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
 }
 
 model Prestamo {
