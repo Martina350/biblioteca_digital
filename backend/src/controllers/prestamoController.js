@@ -1,4 +1,4 @@
-const prestamoServices = require('../services/libroServices');
+const prestamoServices = require('../services/prestamoServices');
 const prestamoRepository = require('../repositories/prestamoRepository');
 
 async function getPrestamos(req, res) {
@@ -29,7 +29,7 @@ async function entregarLibro(req, res) {
 
 async function pedirLibro(req, res) {
     try {
-        const nuevoLibro = await prestamoServices.pedirLibro(req.body, req.user.userId);
+                const nuevoLibro = await prestamoServices.pedirLibro(req.body, req.user.userId);
         res.status(201).json({ message: "Libro pedido correctamente", data: nuevoLibro });
     } catch (error) {
         console.error("Error creating tarea:", error);
@@ -38,15 +38,14 @@ async function pedirLibro(req, res) {
 }
 
 async function historial(req, res) {
-  const idUsuario = req.usuario.id;
-  try {
-    const historialusuarios = await prestamoRepository.historialPrestamo(
-      parseInt(idUsuario)
-    );
-    res.json(historialusuarios);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+    // Usar req.user (definido por el middleware de autenticación)
+    try {
+        const idUsuario = req.user.userId;
+        const historialusuarios = await prestamoRepository.historialPrestamo(parseInt(idUsuario));
+        res.json(historialusuarios);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 }
 
 module.exports = {

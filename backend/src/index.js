@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const libroRoutes = require('./routes/libroRoutes');
 const authRoutes = require('./routes/authRoutes')
+const prestamoRoutes = require('./routes/prestamoRoutes');
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 3000;
@@ -25,6 +26,7 @@ app.get('/', (req, res) => {
 });
 app.use('/api', libroRoutes);
 app.use('/api', authRoutes);
+app.use('/api', prestamoRoutes);
 app.use('/docs', apiReference({
      theme: 'purple',
      layout: 'modern',

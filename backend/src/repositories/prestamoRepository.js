@@ -3,19 +3,31 @@ const prisma = new PrismaClient();
 
 
 async function getPrestamos(usuarioId) {
-    return await prisma.Prestamo.findMany({
-        where: {usuarioId: usuarioId} 
-    });
+  return await prisma.prestamo.findMany({
+    where: { usuarioId: usuarioId },
+    include: { libro: true }
+  });
 }
 
 async function entregarLibro(id, usuarioId, rol) {
-    // Si el usuario es admin, puede eliminar cualquier tarea
-    if (rol === 'admin') {
-        return await prisma.Prestamo.delete({where: {id}});
-    } else {
-        // Si es usuario normal, solo puede eliminar sus propios Libros
-        return await prisma.Prestamo.delete({where: {id, usuarioId}});
-    }
+  const prestamoId = parseInt(id);
+  if (isNaN(prestamoId)) {
+    throw new Error('ID de préstamo inválido');
+  }
+
+  // Comprobar que el préstamo existe
+  const prestamo = await prisma.prestamo.findUnique({ where: { id: prestamoId } });
+  if (!prestamo) {
+    throw new Error('Préstamo no encontrado');
+  }
+
+  // Si no es admin, validar que el préstamo pertenezca al usuario
+  if (rol !== 'admin' && prestamo.usuarioId !== usuarioId) {
+    throw new Error('No autorizado para eliminar este préstamo');
+  }
+
+  // Borrar el préstamo por id
+  return await prisma.prestamo.delete({ where: { id: prestamoId } });
 }
 
 // Función para crear una nueva tarea asociada a un usuario
@@ -23,10 +35,10 @@ async function pedirLibro(data, usuarioId) {
     // Asignar el ID del usuario a los datos de la tarea
     data.usuarioId = usuarioId;
     // Crear la tarea en la base de datos
-    return await prisma.Prestamo.create({
+    return await prisma.prestamo.create({
         data: {
-            ...data, // Datos del libro 
-            usuarioId: usuarioId // ID del usuario propietario
+            ...data,
+            usuarioId: usuarioId
         }
     });
 }
@@ -34,18 +46,12 @@ async function pedirLibro(data, usuarioId) {
 async function historialPrestamo(usuarioId) {
   const prestamos = await prisma.prestamo.findMany({
     where: { usuarioId: usuarioId },
-    include: {
-      libro: true,
-      usuarioId: true,
-    },
+    include: { libro: true }
   });
 
   const historial = await prisma.historial.findMany({
     where: { usuarioId: usuarioId },
-    include: {
-      libro: true,
-      usuario: true,
-    },
+    include: { libro: true, usuario: true }
   });
 
   return { prestamos, historial };
